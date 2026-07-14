@@ -90,6 +90,16 @@ try
 
     // GraphQL endpoint on service_port
     app.MapGraphQL();
+{% if persistence ~= 'None' %}
+
+    // Sample scaffold: create the schema for the Item entity (Domain/Item.cs). Replace with real
+    // migrations as your domain model solidifies.
+    if (!builder.Environment.IsEnvironment("Testing"))
+    {
+        using (var scope = app.Services.CreateScope())
+            scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
+    }
+{% endif %}
 
     app.Run();
 }

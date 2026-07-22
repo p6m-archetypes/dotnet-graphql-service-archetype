@@ -1,6 +1,7 @@
+using HotChocolate;
+using HotChocolate.Types;
 using {{ PrefixName }}{{ SuffixName }}.GraphQL.Types;
 {% if persistence ~= 'None' %}
-using HotChocolate;
 using Microsoft.EntityFrameworkCore;
 using {{ PrefixName }}{{ SuffixName }}.Domain;
 using {{ PrefixName }}{{ SuffixName }}.Resources;
@@ -9,35 +10,37 @@ namespace {{ PrefixName }}{{ SuffixName }}.GraphQL;
 
 {% if persistence ~= 'None' %}
 // Reads over the persisted Item scaffold entity (Domain/Item.cs). Replace Item and these
-// resolvers as your real domain lands.
+// resolvers as your real domain lands. HotChocolate strips the Get prefix and camelCases:
+//   Get{{ PrefixName }} -> {{ prefixName }}, Get{{ PrefixName }}s -> {{ prefixName }}s (the platform standard).
 public class Query
 {
     public string Health() => "OK";
 
-    public async Task<{{ PrefixName }}{{ SuffixName }}Type?> Get{{ PrefixName }}{{ SuffixName }}(
-        string id, [Service] AppDbContext db)
+    public async Task<{{ PrefixName }}Type?> Get{{ PrefixName }}(
+        [GraphQLType(typeof(NonNullType<IdType>))] string id, [Service] AppDbContext db)
     {
         if (!Guid.TryParse(id, out var parsed)) return null;
         var item = await db.Items.FindAsync(parsed);
-        return item is null ? null : {{ PrefixName }}{{ SuffixName }}Type.From(item);
+        return item is null ? null : {{ PrefixName }}Type.From(item);
     }
 
-    public async Task<IEnumerable<{{ PrefixName }}{{ SuffixName }}Type>> List{{ PrefixName }}{{ SuffixName }}s(
+    public async Task<IEnumerable<{{ PrefixName }}Type>> Get{{ PrefixName }}s(
         [Service] AppDbContext db)
         => (await db.Items.OrderBy(i => i.CreatedAt).ToListAsync())
-            .Select({{ PrefixName }}{{ SuffixName }}Type.From);
+            .Select({{ PrefixName }}Type.From);
 }
 {% else %}
 // In-memory stub resolvers — nothing is persisted. Select a persistence option to render the
-// scaffold CRUD backed by a real database.
+// scaffold CRUD backed by a real database. HotChocolate strips the Get prefix and camelCases:
+//   Get{{ PrefixName }} -> {{ prefixName }}, Get{{ PrefixName }}s -> {{ prefixName }}s (the platform standard).
 public class Query
 {
     public string Health() => "OK";
 
-    public {{ PrefixName }}{{ SuffixName }}Type? Get{{ PrefixName }}{{ SuffixName }}(string id)
-        => new {{ PrefixName }}{{ SuffixName }}Type { Id = id, DisplayName = "" };
+    public {{ PrefixName }}Type? Get{{ PrefixName }}([GraphQLType(typeof(NonNullType<IdType>))] string id)
+        => new {{ PrefixName }}Type { Id = id, DisplayName = "" };
 
-    public IEnumerable<{{ PrefixName }}{{ SuffixName }}Type> List{{ PrefixName }}{{ SuffixName }}s()
+    public IEnumerable<{{ PrefixName }}Type> Get{{ PrefixName }}s()
         => [];
 }
 {% endif %}

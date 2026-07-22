@@ -27,13 +27,14 @@ local function answers_with(extra)
   return out
 end
 
--- HotChocolate camelCases resolvers and strips the Get prefix:
---   GetExampleService -> exampleService, ListExampleServices -> listExampleServices, etc.
-local CREATE = [[mutation($name: String!) { createExampleService(displayName: $name) { id displayName } }]]
-local GET    = [[query($id: String!) { exampleService(id: $id) { id displayName } }]]
-local LIST   = [[{ listExampleServices { id displayName } }]]
-local UPDATE = [[mutation($id: String!, $name: String!) { updateExampleService(id: $id, displayName: $name) { id displayName } }]]
-local DELETE = [[mutation($id: String!) { deleteExampleService(id: $id) }]]
+-- The platform standard (S2): entity-named type/fields, no get/list prefixes. HotChocolate
+-- camelCases resolvers and strips the Get prefix:
+--   GetExample -> example, GetExamples -> examples, CreateExample -> createExample, etc.
+local CREATE = [[mutation($name: String!) { createExample(displayName: $name) { id displayName } }]]
+local GET    = [[query($id: ID!) { example(id: $id) { id displayName } }]]
+local LIST   = [[{ examples { id displayName } }]]
+local UPDATE = [[mutation($id: ID!, $name: String!) { updateExample(id: $id, displayName: $name) { id displayName } }]]
+local DELETE = [[mutation($id: ID!) { deleteExample(id: $id) }]]
 
 local SCAFFOLD_FILES = {
   "ExampleService/Resources/Persistence.cs",
@@ -115,36 +116,36 @@ for _, v in ipairs(VARIANTS) do
     g:test("created entities land in " .. v.persistence, function(t)
       local svc = t:use(service)
 
-      local created = svc.api:query(CREATE, { name = "widget" }).createExampleService
+      local created = svc.api:query(CREATE, { name = "widget" }).createExample
       t:expect(created.displayName):equals("widget")
       t:expect(created.id, "created id"):is_truthy()
 
       t:expect(svc.db:query_value(v.count_by_name, { "widget" }), "rows in DB"):equals(1)
 
       -- Read back through the API (the old stub echoed the id with an empty name).
-      local fetched = svc.api:query(GET, { id = created.id }).exampleService
+      local fetched = svc.api:query(GET, { id = created.id }).example
       t:expect(fetched.displayName):equals("widget")
 
-      local listed = svc.api:query(LIST).listExampleServices
+      local listed = svc.api:query(LIST).examples
       local found = false
       for _, e in ipairs(listed or {}) do
         if e.id == created.id then found = true end
       end
-      t:expect(found, "created entity present in listExampleServices"):is_true()
+      t:expect(found, "created entity present in examples"):is_true()
     end)
 
     g:test("updates and deletes round-trip into " .. v.persistence, function(t)
       local svc = t:use(service)
 
-      local created = svc.api:query(CREATE, { name = "ephemeral" }).createExampleService
+      local created = svc.api:query(CREATE, { name = "ephemeral" }).createExample
 
-      local updated = svc.api:query(UPDATE, { id = created.id, name = "renamed" }).updateExampleService
+      local updated = svc.api:query(UPDATE, { id = created.id, name = "renamed" }).updateExample
       t:expect(updated.displayName):equals("renamed")
       t:expect(svc.db:query_value(v.count_by_name, { "renamed" }), "renamed row in DB"):equals(1)
       t:expect(svc.db:query_value(v.count_by_name, { "ephemeral" }), "old name gone"):equals(0)
 
-      t:expect(svc.api:query(DELETE, { id = created.id }).deleteExampleService, "delete reports true"):is_true()
-      local gone = svc.api:query(GET, { id = created.id }).exampleService
+      t:expect(svc.api:query(DELETE, { id = created.id }).deleteExample, "delete reports true"):is_true()
+      local gone = svc.api:query(GET, { id = created.id }).example
       t:expect(gone):is_nil()
       t:expect(svc.db:query_value(v.count_by_name, { "renamed" }), "row deleted from DB"):equals(0)
     end)

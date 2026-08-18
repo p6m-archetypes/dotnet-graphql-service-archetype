@@ -17,7 +17,7 @@ public class {{ EntityName }}Type
     public string DisplayName { get; init; } = string.Empty;
 {% if persistence ~= 'None' %}
 
-    public static {{ EntityName }}Type From(Item item)
+    public static {{ EntityName }}Type From({{ EntityName }} item)
         => new() { Id = item.Id.ToString(), DisplayName = item.DisplayName };
 {% endif %}
 }

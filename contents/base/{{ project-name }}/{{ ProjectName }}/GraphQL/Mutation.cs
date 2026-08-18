@@ -8,7 +8,7 @@ using {{ ProjectName }}.Resources;
 namespace {{ ProjectName }}.GraphQL;
 
 {% if persistence ~= 'None' %}
-// Writes over the persisted Item scaffold entity (Domain/Item.cs). Replace Item and these
+// Writes over the persisted {{ EntityName }} scaffold entity (Domain/{{ EntityName }}.cs). Replace {{ EntityName }} and these
 // resolvers as your real domain lands. Mutations are entity-named per the platform standard:
 //   create{{ EntityName }} / update{{ EntityName }} / delete{{ EntityName }}.
 public class Mutation
@@ -16,8 +16,8 @@ public class Mutation
     public async Task<{{ EntityName }}Type> Create{{ EntityName }}(
         string displayName, [Service] AppDbContext db)
     {
-        var item = new Item { Id = Guid.NewGuid(), DisplayName = displayName };
-        db.Items.Add(item);
+        var item = new {{ EntityName }} { Id = Guid.NewGuid(), DisplayName = displayName };
+        db.{{ EntityName }}s.Add(item);
         await db.SaveChangesAsync();
         return {{ EntityName }}Type.From(item);
     }
@@ -26,7 +26,7 @@ public class Mutation
         [GraphQLType(typeof(NonNullType<IdType>))] string id, string displayName, [Service] AppDbContext db)
     {
         if (!Guid.TryParse(id, out var parsed)) return null;
-        var item = await db.Items.FindAsync(parsed);
+        var item = await db.{{ EntityName }}s.FindAsync(parsed);
         if (item is null) return null;
         item.DisplayName = displayName;
         await db.SaveChangesAsync();
@@ -37,9 +37,9 @@ public class Mutation
         [GraphQLType(typeof(NonNullType<IdType>))] string id, [Service] AppDbContext db)
     {
         if (!Guid.TryParse(id, out var parsed)) return false;
-        var item = await db.Items.FindAsync(parsed);
+        var item = await db.{{ EntityName }}s.FindAsync(parsed);
         if (item is null) return false;
-        db.Items.Remove(item);
+        db.{{ EntityName }}s.Remove(item);
         await db.SaveChangesAsync();
         return true;
     }

@@ -16,7 +16,7 @@ public class Mutation
     public async Task<{{ EntityName }}Type> Create{{ EntityName }}(
         string displayName, [Service] AppDbContext db)
     {
-        var item = new {{ EntityName }} { Id = Guid.NewGuid(), DisplayName = displayName };
+        var item = new {{ EntityName }}Entity { Id = Guid.NewGuid(), DisplayName = displayName };
         db.{{ EntityName }}s.Add(item);
         await db.SaveChangesAsync();
         return {{ EntityName }}Type.From(item);

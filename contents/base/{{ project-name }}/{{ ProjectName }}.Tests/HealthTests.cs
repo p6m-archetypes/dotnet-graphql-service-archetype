@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.Net.Http.Json;
 using Xunit;
 
-namespace {{ PrefixName }}{{ SuffixName }}.Tests;
+namespace {{ ProjectName }}.Tests;
 
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {

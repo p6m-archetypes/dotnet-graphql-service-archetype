@@ -1,8 +1,8 @@
 using System.Net;
-using {{ PrefixName }}{{ SuffixName }};
-using {{ PrefixName }}{{ SuffixName }}.GraphQL;
+using {{ ProjectName }};
+using {{ ProjectName }}.GraphQL;
 {% if persistence ~= 'None' or cache ~= 'None' or messaging ~= 'None' or has_s3 or has_azure_blob %}
-using {{ PrefixName }}{{ SuffixName }}.Resources;
+using {{ ProjectName }}.Resources;
 {% endif %}
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
